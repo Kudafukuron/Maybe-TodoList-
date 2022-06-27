@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>My website</title>
+</head>
+<body style="font-family: sans-serif; margin: 0; margin-top: 4px;">
+  <input type="text" id="title">
+  <input type="date" id="date">
+  <button onclick="Add()" style="margin-bottom: 10px;">Add Todo</button>
+  <div id="list"></div>
+  <script>
+    // MVC - Do only one thing.
+    // Model, View, Controller.
+    
+    /// Model
+    let obj = [{
+      title: 'Default Todo',
+      date: '13-05-2022',
+      id: '1',
+      isOn: false
+    }];
+
+    generateDefault();
+    render();
+    addByEnter();
+    
+
+    /// View
+    function push(title, date, btn, checkBox, isOn) {
+      const div = document.getElementById('list');
+      const todo = document.createElement('div');
+      
+      if(Boolean(isOn) === true) {
+        title.style = 'text-decoration: line-through; color: green;';
+        checkBox.checked = true;
+      }
+      else {
+        title.style = 'text-decoration: none; color: black;';
+        checkBox.checked = false;
+      } 
+      todo.append(checkBox);
+      todo.append(title);
+      todo.append(' ');
+      todo.append(date);
+      todo.append(btn);
+
+      div.append(todo);
+    }
+
+    function erase() {
+      const div = document.getElementById('list');
+      div.innerHTML = '';
+    }
+
+    function saveTodos() {
+      localStorage.setItem('todos', JSON.stringify(obj));
+    }
+
+    function uploadTodos() {
+      const saved = localStorage.getItem('todos');
+      if(typeof(saved) === 'string') obj = JSON.parse(saved);
+    }
+
+    function updateId(findId) {
+      obj.forEach(function (it, index) {
+        if(this[index].id === findId) {
+          this[index].isOn = 1 - this[index].isOn;
+        }
+      }, obj);
+    }
+
+    function toogleTodo(event) {
+      const maker = event.target, findId = maker.id;
+      updateId(findId);
+      render();
+    }
+
+    function render() {
+      erase();
+      saveTodos();
+      obj.forEach(function (it) {
+        const title = document.createElement('span');
+        const date = it.date;
+        title.textContent = it.title;
+        
+        const btn = document.createElement('button');
+        btn.innerText = 'Delete';
+        btn.style = 'margin-left: 10px;';
+        btn.id = it.id;
+        
+        const checkBox = document.createElement('input');
+        checkBox.setAttribute('type', 'checkbox');
+        checkBox.style = 'margin-right: 10px;';
+        checkBox.id = it.id;
+        
+        btn.onclick = deleteTodo;
+        checkBox.onchange = toogleTodo;
+        //console.log(typeof(title));
+        push(title, date, btn, checkBox, it.isOn);
+      }); 
+    }
+
+    function addByEnter() {
+      const ourTitle = document.getElementById('title');
+      ourTitle.addEventListener('keydown', function(e) {
+        if(e.code == 'Enter') Add();
+      });
+    }
+
+    function generateDefault() {
+      const ourStorage = localStorage.getItem('todos');
+      if(typeof(ourStorage) === 'string' && ourStorage != '[]') uploadTodos();
+      else saveTodos();
+    }
+
+    /// Controller
+    function Add() {
+      const title = document.getElementById('title'), date = document.getElementById('date');
+      const id = '' + new Date().getTime();
+      obj.push({title: title.value, date: date.value, id: id, isOn: 0}); /// To put into seperate function
+      saveTodos();
+      render();
+    }
+
+    function deleteTask(findId){
+      return obj.filter(function (todo) {
+        if(todo.id === findId){
+          return false;
+        } else {
+          return true;
+        }
+      });
+    }
+
+    function deleteTodo(event) {
+      const maker = event.target, findId = maker.id;
+      obj = deleteTask(findId);
+      
+      render();
+    }
+
+  </script>
+</body>
+</html>
